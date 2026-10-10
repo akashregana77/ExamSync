@@ -13,8 +13,8 @@ export function getImageKitAuth(env = process.env) {
   const publicKey = env.IMAGEKIT_PUBLIC_KEY;
   const urlEndpoint = env.IMAGEKIT_URL_ENDPOINT;
 
-  if (!privateKey || !publicKey) {
-    const err = new Error('IMAGEKIT_PRIVATE_KEY or IMAGEKIT_PUBLIC_KEY is not set in environment variables.');
+  if (!privateKey || !publicKey || !urlEndpoint) {
+    const err = new Error('IMAGEKIT credentials (IMAGEKIT_PRIVATE_KEY, IMAGEKIT_PUBLIC_KEY, IMAGEKIT_URL_ENDPOINT) are not set in environment variables.');
     err.status = 500;
     throw err;
   }
@@ -28,7 +28,7 @@ export function getImageKitAuth(env = process.env) {
     expire,
     signature,
     publicKey,
-    urlEndpoint: urlEndpoint || 'https://ik.imagekit.io/ygyhdellf',
+    urlEndpoint,
   };
 }
 

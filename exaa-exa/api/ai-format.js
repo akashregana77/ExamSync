@@ -6,13 +6,11 @@
  *   → 200 { html: string }
  *
  * Turns an author's rough answer into clean, structured HTML for the student app.
- * The Groq key stays on the server: set GROQ_API_KEY in .env.local (local dev)
- * or in Vercel → Project → Settings → Environment Variables (production).
- * Optional: GROQ_MODEL (defaults to llama-3.3-70b-versatile).
+ * The Groq key and model stay on the server: set GROQ_API_KEY and GROQ_MODEL in .env.local (local dev)
+ * or in Netlify / Vercel → Environment Variables (production).
  */
 
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const DEFAULT_MODEL = 'openai/gpt-oss-120b';
 const MAX_ANSWER_CHARS = 20000;
 const MAX_QUESTION_CHARS = 2000;
 
@@ -45,8 +43,9 @@ function stripFences(text) {
 /** Framework-agnostic core — also used by the Vite dev server (see vite.config.js). */
 export async function formatAnswer({ question = '', answer = '' } = {}, env = process.env) {
   const apiKey = env.GROQ_API_KEY;
-  if (!apiKey) {
-    throw httpError(500, 'GROQ_API_KEY is not set. Add it to .env.local (local) or to the Vercel project environment variables.');
+  const model = env.GROQ_MODEL;
+  if (!apiKey || !model) {
+    throw httpError(500, 'GROQ_API_KEY or GROQ_MODEL is not set. Add them to environment variables.');
   }
   if (!String(answer).trim()) throw httpError(400, 'Write an answer before formatting it with AI.');
   if (answer.length > MAX_ANSWER_CHARS || question.length > MAX_QUESTION_CHARS) {
@@ -60,7 +59,7 @@ export async function formatAnswer({ question = '', answer = '' } = {}, env = pr
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: env.GROQ_MODEL || DEFAULT_MODEL,
+      model,
       temperature: 0.2,
       max_tokens: 4096,
       messages: [
